@@ -110,6 +110,7 @@ public class Config {
     }
 
     // TODO: make the destination configurable
+    @SuppressFBWarnings("PA_PUBLIC_PRIMITIVE_ATTRIBUTE")
     public File getOutputWar() {
         return new File(buildSettings.getTmpDir(), "/output/target/" + bundle.artifactId + "-" + buildSettings.getVersion() + ".war");
     }

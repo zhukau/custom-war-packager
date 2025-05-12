@@ -1,5 +1,6 @@
 package io.jenkins.tools.warpackager.lib.impl;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.warpackager.lib.config.Config;
 import io.jenkins.tools.warpackager.lib.config.DependencyInfo;
 import io.jenkins.tools.warpackager.lib.config.GroovyHookInfo;
@@ -63,6 +64,7 @@ public class BOMBuilder {
         return this;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public BOMBuilder withStatus(Map<String, String> versionOverrides) {
         this.versionOverrides = versionOverrides;
         return this;

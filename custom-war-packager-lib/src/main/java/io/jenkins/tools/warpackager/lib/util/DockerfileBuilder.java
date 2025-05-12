@@ -1,5 +1,6 @@
 package io.jenkins.tools.warpackager.lib.util;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.warpackager.lib.config.Config;
 import io.jenkins.tools.warpackager.lib.config.DockerBuildSettings;
 import org.apache.commons.io.IOUtils;
@@ -28,6 +29,7 @@ public abstract class DockerfileBuilder {
 
     private static final Logger LOGGER = Logger.getLogger(DockerfileBuilder.class.getName());
 
+    @SuppressFBWarnings({"EI_EXPOSE_REP2", "CT_CONSTRUCTOR_THROW"})
     public DockerfileBuilder(@Nonnull Config config,
                              @Nonnull DockerBuildSettings dockerSettings,
                              @Nonnull File outputDir) throws IOException {

@@ -31,6 +31,7 @@ public class JenkinsfileRunnerSettings {
         this.source = source;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public void setDocker(@CheckForNull DockerBuildSettings docker) {
         this.docker = docker;
     }
@@ -48,6 +49,7 @@ public class JenkinsfileRunnerSettings {
         return source;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     @CheckForNull
     public DockerBuildSettings getDocker() {
         return docker;

@@ -39,6 +39,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * Custom stub for patching WAR files
@@ -52,6 +53,7 @@ public class JenkinsWarPatcher extends PackagerBase {
     private final File srcWar;
     private final File dstDir;
 
+    @SuppressFBWarnings(value = "CT_CONSTRUCTOR_THROW", justification = "No finalize() method, low risk of Finalizer attacks.")
     public JenkinsWarPatcher(@Nonnull Config config, @Nonnull File src, @Nonnull File dstDir) throws IOException {
         super(config);
         if (src.equals(dstDir)) {

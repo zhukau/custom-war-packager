@@ -1,5 +1,6 @@
 package io.jenkins.tools.warpackager.lib.config;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.warpackager.lib.impl.plugins.MavenPluginInfoProvider;
 import io.jenkins.tools.warpackager.lib.impl.plugins.UpdateCenterPluginInfoProvider;
 import io.jenkins.tools.warpackager.lib.model.plugins.PluginInfoProvider;
@@ -151,11 +152,13 @@ public class BuildSettings {
         return mvnOptions != null ? Collections.unmodifiableList(mvnOptions) : Collections.emptyList();
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     @CheckForNull
     public DockerBuildSettings getDocker() {
         return docker;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     @CheckForNull
     public JenkinsfileRunnerSettings getJenkinsfileRunner() {
         return jenkinsfileRunner;
@@ -166,6 +169,7 @@ public class BuildSettings {
         return updateCenterUrl;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     @CheckForNull
     public JenkinsRepositorySettings getJenkinsRepository() {
         return jenkinsRepository;

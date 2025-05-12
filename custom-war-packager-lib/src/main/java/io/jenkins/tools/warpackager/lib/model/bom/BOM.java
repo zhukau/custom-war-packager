@@ -34,18 +34,22 @@ public class BOM {
     @CheckForNull
     Specification status;
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public void setMetadata(@CheckForNull Metadata metadata) {
         this.metadata = metadata;
     }
 
+    @SuppressFBWarnings("PA_PUBLIC_PRIMITIVE_ATTRIBUTE")
     public void setSpec(@Nonnull Specification spec) {
         this.spec = spec;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public void setStatus(@CheckForNull Specification status) {
         this.status = status;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     @CheckForNull
     public Metadata getMetadata() {
         return metadata;
@@ -56,6 +60,7 @@ public class BOM {
         return spec;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     @CheckForNull
     public Specification getStatus() {
         return status;

@@ -28,18 +28,22 @@ public class Specification {
     @CheckForNull
     List<Environment> environments;
 
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public void setCore(ComponentReference core) {
         this.core = core;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public void setComponents(@CheckForNull List<ComponentReference> components) {
         this.components = components;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public void setPlugins(@CheckForNull List<ComponentReference> plugins) {
         this.plugins = plugins;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public void setEnvironments(@CheckForNull List<Environment> environments) {
         this.environments = environments;
     }
@@ -58,6 +62,7 @@ public class Specification {
         return null;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     @Nonnull
     public ComponentReference getCore() {
         return core;

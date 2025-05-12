@@ -46,6 +46,7 @@ public class MavenHelper {
         run(buildDir, true, args);
     }
 
+    @SuppressFBWarnings("PA_PUBLIC_PRIMITIVE_ATTRIBUTE")
     @CheckReturnValue
     public int run(File buildDir, boolean failOnError, String ... args) throws IOException, InterruptedException {
         ArrayList<String> callArgs = new ArrayList<>();
