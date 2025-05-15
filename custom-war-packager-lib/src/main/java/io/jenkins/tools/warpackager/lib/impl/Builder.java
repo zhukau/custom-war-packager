@@ -317,6 +317,19 @@ public class Builder extends PackagerBase {
                             new Object[] {dep, newVersion});
                 }
 
+                // Ensure the target directory is clean before cloning
+                if (componentBuildDir.exists()) {
+                    LOGGER.log(Level.INFO, "Cleaning up existing component build directory: {0}", componentBuildDir.getAbsolutePath());
+                    try {
+                        org.apache.commons.io.FileUtils.deleteDirectory(componentBuildDir);
+                    } catch (IOException e) {
+                        LOGGER.log(Level.WARNING, "Failed to delete existing component build directory: " + componentBuildDir.getAbsolutePath() + ". Will attempt to proceed.", e);
+                        // If deletion fails, the git clone might still fail, but we log and proceed.
+                    }
+                }
+                // Recreate the directory after deletion, or ensure it exists if deletion failed but dir was removed by other means.
+                Files.createDirectories(componentBuildDir.toPath());
+
                 processFor(componentBuildDir, "git", "clone", gitRemote, ".");
                 processFor(componentBuildDir, "git", "checkout", commit);
                 break;

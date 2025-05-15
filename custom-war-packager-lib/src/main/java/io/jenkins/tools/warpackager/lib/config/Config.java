@@ -55,6 +55,10 @@ public class Config {
     @CheckForNull
     public Collection<CasCConfig> casc;
 
+    public BuildSettings getBuildSettings() {
+        return buildSettings;
+    }
+
     private static Config load(@Nonnull InputStream istream, boolean isEssentialsYML) throws IOException {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         final Config loaded;
