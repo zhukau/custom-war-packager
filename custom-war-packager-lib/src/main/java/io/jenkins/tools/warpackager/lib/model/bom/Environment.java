@@ -44,10 +44,12 @@ public class Environment {
         this.name = name;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public void setComponents(@CheckForNull List<ComponentReference> components) {
         this.components = components;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public void setPlugins(@CheckForNull List<ComponentReference> plugins) {
         this.plugins = plugins;
     }

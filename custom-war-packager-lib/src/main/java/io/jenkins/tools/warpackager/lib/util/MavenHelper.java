@@ -1,7 +1,6 @@
 package io.jenkins.tools.warpackager.lib.util;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.jenkins.tools.warpackager.lib.config.BuildSettings;
 import io.jenkins.tools.warpackager.lib.config.Config;
 import io.jenkins.tools.warpackager.lib.config.DependencyInfo;
 import io.jenkins.tools.warpackager.lib.config.SourceInfo;
@@ -9,9 +8,8 @@ import io.jenkins.tools.warpackager.lib.config.SourceInfo;
 import javax.annotation.CheckReturnValue;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -20,9 +18,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static io.jenkins.tools.warpackager.lib.util.SystemCommandHelper.processFor;
-import static io.jenkins.tools.warpackager.lib.util.SystemCommandHelper.runFor;
 
 /**
  * @author Oleg Nenashev
@@ -41,32 +36,112 @@ public class MavenHelper {
         this.cfg = cfg;
     }
 
-    @SuppressFBWarnings(value = "RV_RETURN_VALUE_IGNORED", justification = "Passed parameter is true")
+    private String readJvmConfig(File buildDir) {
+        File jvmConfigFile = new File(new File(buildDir, ".mvn"), "jvm.config");
+        if (jvmConfigFile.isFile() && jvmConfigFile.canRead()) {
+            try (Stream<String> lines = Files.lines(jvmConfigFile.toPath())) {
+                String jvmOpts = lines.map(String::trim)
+                                   .filter(line -> !line.isEmpty() && !line.startsWith("#"))
+                                   .collect(Collectors.joining(" "));
+                if (!jvmOpts.isEmpty()) {
+                    return jvmOpts;
+                }
+            } catch (IOException e) {
+                LOGGER.log(Level.WARNING, "Failed to read .mvn/jvm.config from " + buildDir.getAbsolutePath(), e);
+            }
+        }
+        return null;
+    }
+
+    @SuppressFBWarnings(value = "RV_RETURN_VALUE_IGNORED", justification = "Passed parameter is true for failOnError")
     public void run(File buildDir, String ... args) throws IOException, InterruptedException {
         run(buildDir, true, args);
     }
 
+    @SuppressFBWarnings("PA_PUBLIC_PRIMITIVE_ATTRIBUTE")
     @CheckReturnValue
     public int run(File buildDir, boolean failOnError, String ... args) throws IOException, InterruptedException {
-        ArrayList<String> callArgs = new ArrayList<>();
+        ArrayList<String> commandList = new ArrayList<>();
+        commandList.add(MavenHelper.mvnCommand);
 
-        callArgs.add(MavenHelper.mvnCommand);
-
-        if (cfg.buildSettings != null) {
-            File settingsFile = cfg.buildSettings.getMvnSettingsFile();
+        if (cfg.getBuildSettings() != null) {
+            File settingsFile = cfg.getBuildSettings().getMvnSettingsFile();
             if (settingsFile != null) {
-                callArgs.add("-s");
-                callArgs.add(settingsFile.getAbsolutePath());
+                commandList.add("-s");
+                commandList.add(settingsFile.getAbsolutePath());
             }
-            Collections.addAll(callArgs, args);
-            callArgs.addAll(cfg.buildSettings.getMvnOptions());
+        }
+        Collections.addAll(commandList, args); // Add user-provided Maven goals/phases
+        if (cfg.getBuildSettings() != null) {
+            cfg.getBuildSettings().getMvnOptions();
+            commandList.addAll(cfg.getBuildSettings().getMvnOptions()); // Add configured Maven options
         }
 
-        if (failOnError) {
-            processFor(buildDir, callArgs.toArray(args));
-            return 0;
+        ProcessBuilder pb = new ProcessBuilder(commandList);
+        pb.directory(buildDir);
+
+        // Ensure .mvn/jvm.config exists by copying from resources if not present
+        File mvnDir = new File(buildDir, ".mvn");
+        File jvmConfigFileInBuildDir = new File(mvnDir, "jvm.config");
+        if (!jvmConfigFileInBuildDir.exists()) {
+            try (InputStream defaultConfigStream = MavenHelper.class.getResourceAsStream("/mvn/jvm.config")) {
+                if (defaultConfigStream != null) {
+                    if (!mvnDir.exists()) {
+                        if (mvnDir.mkdirs()) {
+                            LOGGER.log(Level.INFO, "Created .mvn directory in " + buildDir.getAbsolutePath());
+                        } else {
+                            LOGGER.log(Level.WARNING, "Failed to create .mvn directory in " + buildDir.getAbsolutePath());
+                            // Continue, maybe readJvmConfig will still work or it's not critical
+                        }
+                    }
+                    if (mvnDir.isDirectory()) { // Check if directory creation was successful or it already existed
+                        Files.copy(defaultConfigStream, jvmConfigFileInBuildDir.toPath());
+                        LOGGER.log(Level.INFO, "Copied default jvm.config to " + jvmConfigFileInBuildDir.getAbsolutePath());
+                    } else {
+                        LOGGER.log(Level.WARNING, ".mvn path exists but is not a directory in " + buildDir.getAbsolutePath());
+                    }
+                } else {
+                    LOGGER.log(Level.WARNING, "Default /mvn/jvm.config not found in classpath resources.");
+                }
+            } catch (IOException e) {
+                LOGGER.log(Level.WARNING, "Failed to copy default jvm.config to " + jvmConfigFileInBuildDir.getAbsolutePath(), e);
+            }
         }
-        return runFor(buildDir, callArgs.toArray(args));
+
+        // Read .mvn/jvm.config and set MAVEN_OPTS
+        String jvmConfigOpts = readJvmConfig(buildDir); // This will now read the copied or pre-existing file
+        String mavenOptsToSet = null;
+        if (jvmConfigOpts != null) {
+            String existingMavenOpts = pb.environment().get("MAVEN_OPTS");
+            if (existingMavenOpts != null && !existingMavenOpts.isEmpty()) {
+                mavenOptsToSet = jvmConfigOpts + " " + existingMavenOpts;
+            } else {
+                mavenOptsToSet = jvmConfigOpts;
+            }
+        }
+        // If jvmConfigOpts is null, but there are existing MAVEN_OPTS, preserve them.
+        // If both are null, MAVEN_OPTS remains unset, which is fine.
+        // If only jvmConfigOpts is present, it becomes the new MAVEN_OPTS.
+        // If existing MAVEN_OPTS were already there and jvmConfigOpts is null, they are preserved by default.
+        if (mavenOptsToSet != null) {
+             pb.environment().put("MAVEN_OPTS", mavenOptsToSet);
+             LOGGER.log(Level.INFO, "Setting MAVEN_OPTS for subprocess: " + mavenOptsToSet);
+        }
+
+        // It's generally good practice to inherit IO for build tools unless specific parsing is needed.
+        // This makes the output visible to the user in real-time.
+        pb.inheritIO();
+
+        Process process = pb.start();
+        int exitCode = process.waitFor();
+
+        if (failOnError && exitCode != 0) {
+            throw new IOException("Maven command failed with exit code " + exitCode +
+                                  " in directory " + buildDir.getAbsolutePath() +
+                                  ". Command: " + String.join(" ", commandList) +
+                                  (mavenOptsToSet != null ? " MAVEN_OPTS=" + mavenOptsToSet : ""));
+        }
+        return exitCode;
     }
 
     private static String getOsSpecificMavenCommand() {

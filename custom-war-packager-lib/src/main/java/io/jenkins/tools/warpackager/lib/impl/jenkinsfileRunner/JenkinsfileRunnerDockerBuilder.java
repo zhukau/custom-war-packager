@@ -1,5 +1,6 @@
 package io.jenkins.tools.warpackager.lib.impl.jenkinsfileRunner;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.warpackager.lib.config.Config;
 import io.jenkins.tools.warpackager.lib.config.DockerBuildSettings;
 import io.jenkins.tools.warpackager.lib.util.DockerfileBuilder;
@@ -43,6 +44,7 @@ public class JenkinsfileRunnerDockerBuilder extends DockerfileBuilder {
         return this;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public JenkinsfileRunnerDockerBuilder withVersionOverrides(Map<String, String> versionOverrides) {
         this.versionOverrides = versionOverrides;
         return this;

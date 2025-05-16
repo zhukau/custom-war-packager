@@ -55,6 +55,10 @@ public class Config {
     @CheckForNull
     public Collection<CasCConfig> casc;
 
+    public BuildSettings getBuildSettings() {
+        return buildSettings;
+    }
+
     private static Config load(@Nonnull InputStream istream, boolean isEssentialsYML) throws IOException {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         final Config loaded;
@@ -110,6 +114,7 @@ public class Config {
     }
 
     // TODO: make the destination configurable
+    @SuppressFBWarnings("PA_PUBLIC_PRIMITIVE_ATTRIBUTE")
     public File getOutputWar() {
         return new File(buildSettings.getTmpDir(), "/output/target/" + bundle.artifactId + "-" + buildSettings.getVersion() + ".war");
     }

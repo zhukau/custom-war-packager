@@ -1,6 +1,7 @@
 package io.jenkins.tools.warpackager.lib.model.bom;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.warpackager.lib.config.PackageInfo;
 
 import javax.annotation.CheckForNull;
@@ -26,10 +27,12 @@ public class Metadata {
     @JsonProperty
     Map<String, String> annotations;
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public void setAnnotations(@CheckForNull Map<String, String> annotations) {
         this.annotations = annotations;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public void setLabels(@CheckForNull Map<String, String> labels) {
         this.labels = labels;
     }
